@@ -60,7 +60,13 @@ const login = async (req, res) => {
       });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        followers: true,
+        following: true,
+      },
+    });
     if (!user) {
       return res.status(200).json({
         status: false,
@@ -115,7 +121,14 @@ const me = async (req, res) => {
     }
 
     // Kullanıcıyı ID ile bul
-    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      include: {
+        followers: true,
+        following: true,
+        posts: true,
+      },
+    });
     if (!user) {
       return res.status(200).json({
         status: false,
@@ -126,12 +139,7 @@ const me = async (req, res) => {
     // Kullanıcı bilgilerini döndür
     res.status(200).json({
       status: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      user,
     });
   } catch (error) {
     console.error(error);
@@ -139,4 +147,46 @@ const me = async (req, res) => {
   }
 };
 
-module.exports = { register, login, me };
+const getUserById = async (req, res) => {
+  try {
+    // Extract userId from query parameters
+    const { userId } = req.query;
+
+    // Check if userId is provided
+    if (!userId) {
+      return res.status(200).json({
+        status: false,
+        message: "User ID is required.",
+      });
+    }
+
+    // Fetch the user from the database
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(userId) },
+      include: {
+        followers: true,
+        following: true,
+        posts: true,
+      },
+    });
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(200).json({
+        status: false,
+        message: "User not found.",
+      });
+    }
+
+    // Return the user data
+    res.status(200).json({
+      status: true,
+      user,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error.");
+  }
+};
+
+module.exports = { register, login, me, getUserById };
