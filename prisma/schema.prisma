@@ -1,0 +1,54 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  role      Role      @default(USER)
+  email     String    @unique
+  firstName String
+  lastName  String
+  password  String
+  phone     String?   @unique
+  followers Follows[] @relation("following")
+  following Follows[] @relation("follower")
+  posts     Post[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean  @default(false)
+  title     String   @db.VarChar(255)
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  Int?
+}
+
+model Follows {
+  follower    User @relation("follower", fields: [followerId], references: [id])
+  followerId  Int
+  following   User @relation("following", fields: [followingId], references: [id])
+  followingId Int
+
+  @@id([followerId, followingId])
+}
+
+model File {
+  id        Int    @id @default(autoincrement())
+  file_url  String
+  file_type String
+  file_size Int
+}
+
+enum Role {
+  USER
+  ADMIN
+}
