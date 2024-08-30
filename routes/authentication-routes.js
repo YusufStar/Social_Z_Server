@@ -1,16 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { register } = require("../controllers/authentication-controller");
+const { register, login, me } = require("../controllers/authentication-controller");
 
 // Register route
 router.post("/register", register);
 
 // Login route
-router.post("/login", (req, res) => {
-  console.log("Login endpoint hit");
-  // Burada kullanıcı giriş işlemini gerçekleştirin
-  res.send("Login endpoint");
-});
+router.post("/login", login);
 
 // Forgot Password route
 router.post("/forgot-password", (req, res) => {
@@ -26,9 +22,6 @@ router.post("/reset-password", (req, res) => {
   res.send("Reset Password endpoint");
 });
 
-router.get("/me", (req, res) => {
-  const token = req.headers.authorization; // bearer token
-  res.send("Me endpoint");
-});
+router.get("/me", me);
 
 module.exports = router;
